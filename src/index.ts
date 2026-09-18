@@ -82,5 +82,4 @@ export function hlwPlugin(options: PluginOptions = {}): Plugin[] {
 	return plugins
 }
 
-export default hlwPlugin
 export type * from './types'
