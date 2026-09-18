@@ -50,8 +50,8 @@ function createDefinePlugin(options: PluginOptions = {}): Plugin {
 				__HLW_ENV__: JSON.stringify(envDict),
 				'import.meta.env.VITE_BASE_URL': JSON.stringify(baseUrl),
 			}
-			for (const [k, v] of Object.entries(envDict)) {
-				defineDict[`import.meta.env.${k}`] = JSON.stringify(v)
+			for (const [key, value] of Object.entries(envDict)) {
+				defineDict[`import.meta.env.${key}`] = JSON.stringify(value)
 			}
 			return {
 				define: defineDict
