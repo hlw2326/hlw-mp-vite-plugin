@@ -1,0 +1,34 @@
+{
+  "name": "@hlw-mp/vite-plugin",
+  "version": "1.0.0",
+  "description": "HLW Vite Plugin for auto app environment variables and type definitions",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.8.3",
+    "vite": "^5.2.8"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "unplugin-auto-import": "^0.17.5",
+    "@antfu/utils": "^0.7.7"
+  }
+}
