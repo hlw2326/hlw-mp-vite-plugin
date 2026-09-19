@@ -3,7 +3,7 @@ import type { Plugin } from 'vite'
 const V_COPY_RE = /\bv-copy((?:\.\w+)*)="([^"]*)"/g
 
 function toTap(expr: string, isSilent: boolean): string {
-	const success = isSilent ? '' : ', success: () => uni.showToast({ title: "复制成功", icon: "none" })'
+	const success = isSilent ? '' : ", success: () => uni.showToast({ title: '复制成功', icon: 'none' })"
 	return `@tap="() => uni.setClipboardData({ data: String(${expr})${success} })"`
 }
 

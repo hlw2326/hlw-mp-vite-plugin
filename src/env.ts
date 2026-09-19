@@ -24,7 +24,7 @@ export function toCode(version: string): number {
  * 加载当前模式的环境变量
  */
 export function loadEnv(mode: string, root: string): Record<string, string> {
-	return viteLoadEnv(mode, root, '')
+	return viteLoadEnv(mode, root, 'VITE_')
 }
 
 /**

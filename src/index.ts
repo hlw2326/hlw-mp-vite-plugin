@@ -42,7 +42,9 @@ function createDefinePlugin(options: PluginOptions = {}): Plugin {
 				__HLW_ENV__: JSON.stringify(envDict),
 			}
 			for (const [key, value] of Object.entries(envDict)) {
-				define[`import.meta.env.${key}`] = JSON.stringify(value)
+				if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)) {
+					define[`import.meta.env.${key}`] = JSON.stringify(value)
+				}
 			}
 			return { define }
 		}
