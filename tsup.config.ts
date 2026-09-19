@@ -8,5 +8,5 @@ export default defineConfig({
 	splitting: false,
 	sourcemap: false,
 	minify: false,
-	external: ['fs', 'path', '@dcloudio/uni-cli-shared', 'unplugin-auto-import', '@antfu/utils', /^unplugin-auto-import\/.*/]
+	external: ['fs', 'path', 'vite', '@dcloudio/uni-cli-shared', 'unplugin-auto-import', '@antfu/utils', /^unplugin-auto-import\/.*/]
 })

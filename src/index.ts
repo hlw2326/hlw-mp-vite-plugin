@@ -1,46 +1,38 @@
 import fs from 'fs'
 import path from 'path'
-import type { Plugin, UserConfig, ConfigEnv } from 'vite'
+import type { Plugin, ConfigEnv } from 'vite'
 import type { PluginOptions } from './types'
-import { loadEnv, readPackage, toCode } from './env'
-import { genDts, writeDts } from './dts'
+import { loadEnv, toCode, genDts, writeDts } from './env'
 import { createCopyTransformPlugin, createDirectiveInjectPlugin } from './copy'
 import { createEasycomPlugin } from './easycom'
 import { createAutoImportPlugin } from './auto-import'
 import { createMpShimPlugin } from './shim'
 
 /**
- * 构建定义件
- * @param options 插件配置项
- * @returns 构建插件体
+ * 注入应用宏定义与环境变量插件
  */
 function createDefinePlugin(options: PluginOptions = {}): Plugin {
 	return {
 		name: 'hlw-define',
-		config(userConfig?: UserConfig, envConfig?: ConfigEnv) {
-			const projectRoot = options.cwd || (fs.existsSync(path.resolve(process.cwd(), 'package.json')) ? process.cwd() : userConfig?.root || process.cwd())
-			const currentMode = envConfig?.mode || 'development'
-			const envDict = loadEnv(currentMode, projectRoot)
-			const packageData = readPackage(projectRoot)
+		config(_, { mode }: ConfigEnv) {
+			const root = options.cwd || process.cwd()
+			const envDict = loadEnv(mode, root)
+			const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
 
-			const versionName = (envDict.VITE_APP_VERSION || packageData.version || '') as string
+			const versionName = (envDict.VITE_APP_VERSION || pkg.version) as string
 			const versionCode = toCode(versionName)
-			const baseUrl = options.base || envDict.VITE_API_BASE_URL || envDict.VITE_BASE_URL || ''
-			const wssUrl = options.wss || envDict.VITE_WSS_URL || ''
-			const appName = (envDict.VITE_APP_NAME || packageData.name || '') as string
-			const appId = envDict.VITE_APPID || ''
+			const baseUrl = options.base || envDict.VITE_BASE_URL
+			const wssUrl = options.wss || envDict.VITE_WSS_URL
+			const appName = (envDict.VITE_APP_NAME || pkg.name) as string
+			const appId = envDict.VITE_APPID
 
-			// 生成类型库
-			const dtsTarget = options.dts || (fs.existsSync(path.resolve(projectRoot, 'src/types')) ? path.resolve(projectRoot, 'src/types/host-env.d.ts') : undefined)
-			if (dtsTarget) {
-				const dtsPath = path.isAbsolute(dtsTarget) ? dtsTarget : path.resolve(projectRoot, dtsTarget)
-				writeDts(dtsPath, genDts(envDict))
-			}
+			// 自动生成环境变量类型声明文件
+			writeDts(path.resolve(root, options.dts || 'src/types/host-env.d.ts'), genDts(envDict))
 
-			// 注入环境项
+			// 同步到当前 Node 进程
 			Object.assign(process.env, envDict)
 
-			const defineDict: Record<string, string> = {
+			const define: Record<string, string> = {
 				__APP_VERSION_CODE__: JSON.stringify(versionCode),
 				__APP_VERSION_NAME__: JSON.stringify(versionName),
 				__APP_BASE_URL__: JSON.stringify(baseUrl),
@@ -48,22 +40,17 @@ function createDefinePlugin(options: PluginOptions = {}): Plugin {
 				__APP_NAME__: JSON.stringify(appName),
 				__APPID__: JSON.stringify(appId),
 				__HLW_ENV__: JSON.stringify(envDict),
-				'import.meta.env.VITE_BASE_URL': JSON.stringify(baseUrl),
 			}
 			for (const [key, value] of Object.entries(envDict)) {
-				defineDict[`import.meta.env.${key}`] = JSON.stringify(value)
+				define[`import.meta.env.${key}`] = JSON.stringify(value)
 			}
-			return {
-				define: defineDict
-			}
+			return { define }
 		}
 	}
 }
 
 /**
- * 统一集成件
- * @param options 插件配置项
- * @returns 插件集合表
+ * 集成统一 Vite 插件
  */
 export function hlwPlugin(options: PluginOptions = {}): Plugin[] {
 	const plugins: Plugin[] = [
@@ -74,7 +61,6 @@ export function hlwPlugin(options: PluginOptions = {}): Plugin[] {
 		createEasycomPlugin({ replacement: options.easycomReplacement })
 	]
 
-	// 注入自动入
 	if (options.autoImport) {
 		plugins.push(createAutoImportPlugin({ dts: options.autoImportDts }))
 	}
